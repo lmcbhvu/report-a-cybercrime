@@ -3,7 +3,7 @@
 trigger:
   branches:
     include:
-      - master
+      - pipeline-refine
   paths:
     include:
       - frontend
@@ -15,37 +15,45 @@ pool:
   vmImage: 'ubuntu-16.04'
 
 steps:
-  - task: Npm@1
-    inputs:
-      command: 'install'
-      workingDir: 'frontend'
+- task: CacheBeta@0
+  inputs:
+    key: |
+      $(Agent.OS)
+      $(Build.SourcesDirectory)/package-lock.json
+    path: $(Pipeline.Workspace)/.cache/npm
+  displayName: 'Cache npm'
 
-  - script: |
-      cd frontend
-      npm run compile
-      npm run coverage
-      npm run lint
-      npm run check-translations
-    displayName: 'Run npm scripts'
+- task: Npm@1
+  inputs:
+    command: 'install'
+    workingDir: 'frontend'
 
-  - task: Docker@2
-    inputs:
-      containerRegistry: 'scACR'
-      repository: 'frontend'
-      command: 'build'
-      Dockerfile: 'frontend/Dockerfile'
-      tags: |
-        $(Build.SourceBranchName)
-        $(Build.SourceBranchName)$(_DASH)$(Build.SourceVersion)
-        latest
-      arguments: --build-arg RAZZLE_GOOGLE_ANALYTICS_ID=$(_RAZZLE_GOOGLE_ANALYTICS_ID)
+- script: |
+    cd frontend
+    npm run compile
+    npm run coverage
+    npm run lint
+    npm run check-translations
+  displayName: 'Run npm scripts'
 
-  - task: Docker@2
-    inputs:
-      containerRegistry: 'scACR'
-      repository: 'frontend'
-      command: 'push'
-      tags: |
-        $(Build.SourceBranchName)
-        $(Build.SourceBranchName)$(_DASH)$(Build.SourceVersion)
-        latest
+- task: Docker@2
+  inputs:
+    containerRegistry: 'scACR'
+    repository: 'frontend'
+    command: 'build'
+    Dockerfile: 'frontend/Dockerfile'
+    tags: |
+      $(Build.SourceBranchName)
+      $(Build.SourceBranchName)$(_DASH)$(Build.SourceVersion)
+      latest
+    arguments: --build-arg RAZZLE_GOOGLE_ANALYTICS_ID=$(_RAZZLE_GOOGLE_ANALYTICS_ID)
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'scACR'
+    repository: 'frontend'
+    command: 'push'
+    tags: |
+      $(Build.SourceBranchName)
+      $(Build.SourceBranchName)$(_DASH)$(Build.SourceVersion)
+      latest
