@@ -15,11 +15,9 @@ pool:
   vmImage: 'ubuntu-16.04'
 
 steps:
-- task: CacheBeta@0
+- task: CacheBeta@1
   inputs:
-    key: |
-      $(Agent.OS)
-      $(Build.SourcesDirectory)/frontend/package-lock.json
+    key: npm | $(Agent.OS) | $(Build.SourcesDirectory)/frontend/package-lock.json
     path: $(_NPM_CACHE_FOLDER)
   displayName: 'Cache npm'
 
