@@ -19,7 +19,7 @@ steps:
   inputs:
     key: |
       $(Agent.OS)
-      $(Build.SourcesDirectory)/package-lock.json
+      $(Build.SourcesDirectory)/frontend/package-lock.json
     path: $(Pipeline.Workspace)/.cache/npm
   displayName: 'Cache npm'
 
