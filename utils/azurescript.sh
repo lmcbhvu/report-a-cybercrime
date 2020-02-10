@@ -47,7 +47,12 @@ az network vnet subnet create --address-prefixes $CONTAINER_SUBNET_RANGE --name 
 ACR_REGISTRY_ID=$(az acr create --name $ACR_NAME --sku standard --query id --output tsv)
 
 ## Create Database
-az cosmosdb create --name $DB_NAME --kind MongoDB
+az cosmosdb create --name $DB_NAME --kind MongoDB --enable-virtual-network true
+az cosmosdb network-rule add --subnet $APP_SUBNET --virtual-network $VNET_NAME --name $DB_NAME --resource-group $RG_NAME
+
+# add the following IP address exemptions to enable Azure portal access to the data explorer
+# see https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
+az cosmosdb update --name $DB_NAME --resource-group $RG_NAME --ip-range-filter 104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26
 
 ## Create Antivirus Scanner Container Instance
 # - Currently not using the alpine version because mk0x needs to rebuild from clamd v102.2 or 103 to pickup known azure bugfix.
